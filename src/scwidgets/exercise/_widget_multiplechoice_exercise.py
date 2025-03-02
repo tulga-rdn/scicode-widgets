@@ -28,10 +28,10 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
         If specified the save and load panel will appear.
 
     :param allow_multiple: 
-        Whether multiple selections are allowed (default False).
+        Whether multiple selections are allowed.
 
     :param randomize_order: 
-        If True, the order of options is randomized.
+        Whether to randomize order of options.
     """
 
     def __init__(
@@ -150,29 +150,25 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
         return self._description
 
     @property
-    def answer(self) -> dict:
+    def answer(self) -> tuple:
         if self.allow_multiple:
-            return {"selection": tuple(self._selection_widget.value)}
+            return tuple(self._selection_widget.value)
         else:
-            return {"selection": self._selection_widget.value}
+            return (self._selection_widget.value, )
 
     @answer.setter
-    def answer(self, answer: dict):
+    def answer(self, answer) -> None:
         if hasattr(self._cue_selection, "unobserve_widgets"):
             self._cue_selection.unobserve_widgets()
         if self._save_button is not None:
             self._save_button.unobserve_widgets()
         if self._load_button is not None:
             self._load_button.unobserve_widgets()
-
-        if self.allow_multiple:
-            val = answer.get("selection", ())
-            if isinstance(val, (list, set, tuple)):
-                self._selection_widget.value = tuple(val)
-            else:
-                self._selection_widget.value = (val,)
+        
+        if len(answer) == 1:
+            self._selection_widget.value = answer[0]
         else:
-            self._selection_widget.value = answer.get("selection")
+            self._selection_widget.value = answer
 
         if hasattr(self._cue_selection, "observe_widgets"):
             self._cue_selection.observe_widgets()
