@@ -1,7 +1,17 @@
-from typing import Optional, Union, Any, Dict, List
 import random
+from typing import Any, Dict, List, Optional, Union
 
-from ipywidgets import HTML, HBox, HTMLMath, Layout, Output, SelectMultiple, RadioButtons, VBox
+from ipywidgets import (
+    HTML,
+    HBox,
+    HTMLMath,
+    Layout,
+    Output,
+    RadioButtons,
+    SelectMultiple,
+    VBox,
+)
+
 from .._utils import Formatter
 from ..css_style import CssStyle
 from ..cue import SaveCueBox, SaveResetCueButton
@@ -11,14 +21,15 @@ from ._widget_exercise_registry import ExerciseRegistry, ExerciseWidget
 class MultipleChoiceExercise(VBox, ExerciseWidget):
     """
     :param options:
-        Either a dict or a list. If a dict is provided, the widget will display the dictionary’s value
-        but save its key to the registry.
-        
-    :param key: 
+        Either a dict or a list. If a dict is provided, the widget will display the
+        dictionary’s value but save its key to the registry.
+
+    :param key:
         Unique key for the exercise.
 
     :param description:
-        A string describing the exercise that will be put into an HTML widget above the exercise.
+        A string describing the exercise that will be put into an HTML widget above
+        the exercise.
 
     :param title:
         A title for the exercise. If not provided, the key is used.
@@ -27,10 +38,10 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
         An exercise registry that is used to register the answers to save them later.
         If specified the save and load panel will appear.
 
-    :param allow_multiple: 
+    :param allow_multiple:
         Whether multiple selections are allowed.
 
-    :param randomize_order: 
+    :param randomize_order:
         Whether to randomize order of options.
     """
 
@@ -100,26 +111,39 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
             self._load_button = None
             self._button_panel = None
         else:
-            self._cue_selection = SaveCueBox(self._selection_widget, "value", self._selection_widget, cued=True)
+            self._cue_selection = SaveCueBox(
+                self._selection_widget, "value", self._selection_widget, cued=True
+            )
             self._save_button = SaveResetCueButton(
                 self._cue_selection,
                 self._on_click_save_action,
-                disable_on_successful_action=kwargs.pop("disable_save_button_on_successful_action", False),
-                disable_during_action=kwargs.pop("disable_save_button_during_action", True),
+                disable_on_successful_action=kwargs.pop(
+                    "disable_save_button_on_successful_action", False
+                ),
+                disable_during_action=kwargs.pop(
+                    "disable_save_button_during_action", True
+                ),
                 description="Save answer",
                 button_tooltip="Saves answer to the loaded file",
             )
             self._load_button = SaveResetCueButton(
                 self._cue_selection,
                 self._on_click_load_action,
-                disable_on_successful_action=kwargs.pop("disable_load_button_on_successful_action", False),
-                disable_during_action=kwargs.pop("disable_load_button_during_action", True),
+                disable_on_successful_action=kwargs.pop(
+                    "disable_load_button_on_successful_action", False
+                ),
+                disable_during_action=kwargs.pop(
+                    "disable_load_button_during_action", True
+                ),
                 description="Load answer",
                 button_tooltip="Loads answer from the loaded file",
             )
             self._save_button.set_cue_widgets([self._cue_selection, self._load_button])
             self._load_button.set_cue_widgets([self._cue_selection, self._save_button])
-            self._button_panel = HBox([self._save_button, self._load_button], layout=Layout(justify_content="flex-end"))
+            self._button_panel = HBox(
+                [self._save_button, self._load_button],
+                layout=Layout(justify_content="flex-end"),
+            )
 
         self._output = Output()
 
@@ -154,7 +178,7 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
         if self.allow_multiple:
             return tuple(self._selection_widget.value)
         else:
-            return (self._selection_widget.value, )
+            return (self._selection_widget.value,)
 
     @answer.setter
     def answer(self, answer) -> None:
@@ -164,7 +188,7 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
             self._save_button.unobserve_widgets()
         if self._load_button is not None:
             self._load_button.unobserve_widgets()
-        
+
         if len(answer) == 1:
             self._selection_widget.value = answer[0]
         else:
@@ -239,3 +263,11 @@ class MultipleChoiceExercise(VBox, ExerciseWidget):
                 if self._save_button is not None:
                     self._save_button.cued = False
                 print(Formatter.color_success_message(result))
+
+    def check_correct_answers(self, *correct_answers) -> bool:
+        if isinstance(correct_answers[0], (list, tuple, set)):
+            correct_answers = correct_answers[0]
+        if self.allow_multiple:
+            return sorted(self.answer) == sorted(correct_answers)
+        else:
+            return self.answer[0] == correct_answers[0]
